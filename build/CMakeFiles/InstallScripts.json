@@ -1,0 +1,8 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/stufff/build/cmake_install.cmake",
+		"C:/stufff/build/test_payload/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

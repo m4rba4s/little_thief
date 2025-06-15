@@ -1,0 +1,10 @@
+^C:\STUFFF\BUILD\CMAKEFILES\3A53261934AE17A3869F1B5231579526\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/stufff -BC:/stufff/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/stufff/build/PhantomEdge.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

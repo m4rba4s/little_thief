@@ -1,0 +1,7 @@
+C:\stufff\stub\entry.c;C:\stufff\build\PhantomEdge.dir\Release\entry.obj
+C:\stufff\core\utils.c;C:\stufff\build\PhantomEdge.dir\Release\utils.obj
+C:\stufff\core\syscalls.c;C:\stufff\build\PhantomEdge.dir\Release\syscalls.obj
+C:\stufff\core\mem.c;C:\stufff\build\PhantomEdge.dir\Release\mem.obj
+C:\stufff\core\evasion.c;C:\stufff\build\PhantomEdge.dir\Release\evasion.obj
+C:\stufff\core\rdi.c;C:\stufff\build\PhantomEdge.dir\Release\rdi.obj
+C:\stufff\core\loader.c;C:\stufff\build\PhantomEdge.dir\Release\loader.obj

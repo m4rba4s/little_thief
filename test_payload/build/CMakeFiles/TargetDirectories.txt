@@ -1,0 +1,3 @@
+C:/stufff/test_payload/build/CMakeFiles/test_payload.dir
+C:/stufff/test_payload/build/CMakeFiles/ALL_BUILD.dir
+C:/stufff/test_payload/build/CMakeFiles/ZERO_CHECK.dir
