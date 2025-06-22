@@ -1,4 +1,0 @@
-C:\stufff\fuzzer\fuzzer_main.c;C:\stufff\build\fuzzer\pe_fuzzer.dir\Debug\fuzzer_main.obj
-C:\stufff\fuzzer\pe_mutator.c;C:\stufff\build\fuzzer\pe_fuzzer.dir\Debug\pe_mutator.obj
-C:\stufff\fuzzer\crash_handler.c;C:\stufff\build\fuzzer\pe_fuzzer.dir\Debug\crash_handler.obj
-C:\stufff\fuzzer\test_harness.c;C:\stufff\build\fuzzer\pe_fuzzer.dir\Debug\test_harness.obj

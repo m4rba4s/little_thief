@@ -1,6 +1,7 @@
 #include "../include/common_defines.h"
 #include "../include/syscalls.h"
 #include "../include/utils.h"    // For find_function and GetPebAddress/find_module_base_peb
+#include "../include/rtldr_ctx.h" // For PRTLDR_CTX
 
 // Define the global syscall cache instance
 SYSCALL_CACHE g_syscall_cache;
@@ -54,30 +55,22 @@ BOOL resolve_syscall_id(PVOID ntdll_base, const char* function_name, PDWORD pdwS
 
 // Function to initialize the syscall cache
 BOOL initialize_syscalls(PRTLDR_CTX ctx) {
-    if (!ctx || !ctx->ntdll_base) return FALSE;
-
-    internal_initialize_syscall_cache_to_invalid(); // Reset cache
-    BOOL all_resolved = TRUE;
-    PVOID ntdll_base = ctx->ntdll_base;
-
-    // Resolve essential syscalls
-    if (!resolve_syscall_id(ntdll_base, "NtAllocateVirtualMemory", &g_syscall_cache.NtAllocateVirtualMemory)) all_resolved = FALSE;
-    if (!resolve_syscall_id(ntdll_base, "NtProtectVirtualMemory", &g_syscall_cache.NtProtectVirtualMemory)) all_resolved = FALSE;
-    if (!resolve_syscall_id(ntdll_base, "NtFreeVirtualMemory", &g_syscall_cache.NtFreeVirtualMemory)) all_resolved = FALSE;
-    if (!resolve_syscall_id(ntdll_base, "NtCreateFile", &g_syscall_cache.NtCreateFile)) all_resolved = FALSE;
-    if (!resolve_syscall_id(ntdll_base, "NtReadFile", &g_syscall_cache.NtReadFile)) all_resolved = FALSE;
-    if (!resolve_syscall_id(ntdll_base, "NtClose", &g_syscall_cache.NtClose)) all_resolved = FALSE;
-    if (!resolve_syscall_id(ntdll_base, "NtQueryInformationFile", &g_syscall_cache.NtQueryInformationFile)) all_resolved = FALSE;
-    if (!resolve_syscall_id(ntdll_base, "NtTerminateProcess", &g_syscall_cache.NtTerminateProcess)) all_resolved = FALSE;
-
-    // Check if any essential syscall failed to resolve
-    if (g_syscall_cache.NtAllocateVirtualMemory == INVALID_SYSCALL_ID ||
-        g_syscall_cache.NtCreateFile == INVALID_SYSCALL_ID ||
-        g_syscall_cache.NtTerminateProcess == INVALID_SYSCALL_ID) {
-        all_resolved = FALSE;
+    if (!ctx || !ctx->ntdll_base) {
+        return FALSE;
     }
 
-    return all_resolved;
+    // Resolve each required syscall
+    if (!resolve_syscall_id(ctx->ntdll_base, "NtAllocateVirtualMemory", &ctx->syscalls.NtAllocateVirtualMemory)) return FALSE;
+    if (!resolve_syscall_id(ctx->ntdll_base, "NtProtectVirtualMemory", &ctx->syscalls.NtProtectVirtualMemory)) return FALSE;
+    if (!resolve_syscall_id(ctx->ntdll_base, "NtFreeVirtualMemory", &ctx->syscalls.NtFreeVirtualMemory)) return FALSE;
+    if (!resolve_syscall_id(ctx->ntdll_base, "NtClose", &ctx->syscalls.NtClose)) return FALSE;
+    if (!resolve_syscall_id(ctx->ntdll_base, "NtCreateFile", &ctx->syscalls.NtCreateFile)) return FALSE;
+    if (!resolve_syscall_id(ctx->ntdll_base, "NtReadFile", &ctx->syscalls.NtReadFile)) return FALSE;
+    if (!resolve_syscall_id(ctx->ntdll_base, "NtQueryInformationFile", &ctx->syscalls.NtQueryInformationFile)) return FALSE;
+    if (!resolve_syscall_id(ctx->ntdll_base, "NtTerminateProcess", &ctx->syscalls.NtTerminateProcess)) return FALSE;
+    if (!resolve_syscall_id(ctx->ntdll_base, "NtDelayExecution", &ctx->syscalls.NtDelayExecution)) return FALSE;
+
+    return TRUE;
 }
 
 // --- Wrapped Syscall Function Implementations ---
@@ -207,6 +200,14 @@ NTSTATUS wrapped_NtTerminateProcess(
     }
     return do_syscall(g_syscall_cache.NtTerminateProcess,
                       ProcessHandle, ExitStatus);
+}
+
+// Wrapper for NtDelayExecution
+NTSTATUS wrapped_NtDelayExecution(BOOLEAN Alertable, PLARGE_INTEGER DelayInterval) {
+    if (g_syscall_cache.NtDelayExecution == INVALID_SYSCALL_ID) {
+        return STATUS_NOT_IMPLEMENTED;
+    }
+    return do_syscall(g_syscall_cache.NtDelayExecution, Alertable, DelayInterval);
 }
 
 NTSTATUS wrapped_NtQuerySystemInformation(

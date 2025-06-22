@@ -1,26 +1,25 @@
 #ifndef RTLDR_CTX_H
 #define RTLDR_CTX_H
 
-#include "common_defines.h" // Replaced <windows.h>
+#include "common_defines.h"
+#include "syscalls.h"   // Include syscalls FIRST to get SYSCALL_TABLE definition
 
-// This context structure is currently unused by the standard RDI implementation.
-// It is defined as a placeholder for future extensions, such as:
-// - Passing custom data to the payload.
-// - Providing pointers to loader functions (e.g., custom GetProcAddress via syscalls)
-//   if the ReflectiveLoader is modified to accept and use this context.
+// Forward declare the strategy structure to avoid including strategy.h
+struct _EVASION_STRATEGY;
 
-// Runtime Loader Context Structure
-// This structure will hold important runtime data for the loader.
-typedef struct _rtldr_ctx_t {
-    PVOID ntdll_base;         // Base address of ntdll.dll
-    BOOL  syscalls_initialized; // Flag to indicate if syscalls were resolved
-    
-    // TODO: Add more fields as the loader evolves:
-    // - Handles to critical modules (kernel32, user32 etc. if resolved manually)
-    // - Pointers to frequently used functions (if not using syscalls for everything)
-    // - Configuration data passed to the loader
-    // - Information about loaded payloads
+// Main context structure for the runtime loader
+typedef struct _RTLDR_CTX {
+    // Module bases
+    HMODULE ntdll_base;
+    // HMODULE kernel32_base; // etc.
 
-} rtldr_ctx_t, *PRTLDR_CTX; // Added pointer type as per convention
+    // Syscall table, defined in syscalls.h
+    SYSCALL_TABLE syscalls;
+    BOOL syscalls_initialized;
+
+    // Evasion strategy module
+    struct _EVASION_STRATEGY* strategy;
+
+} RTLDR_CTX, *PRTLDR_CTX;
 
 #endif // RTLDR_CTX_H 

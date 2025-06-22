@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 Проект "Phantom Edge" Loader: Дизайн и Принципы
 

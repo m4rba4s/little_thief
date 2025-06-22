@@ -97,11 +97,10 @@ PVOID find_module_base(LPCWSTR module_name) {
     return find_module_base_peb(peb, module_name);
 }
 
-// Function to find the address of an exported function within a module using EAT parsing
-// module_base: Base address of the module to search
-// function_name: Name of the function to find (case-sensitive)
-// Returns function address (FARPROC) or NULL if not found
-FARPROC find_function(PVOID module_base, const char* function_name) {
+// Custom implementation of string comparison (case-insensitive)
+// Find the address of an exported function within a module's EAT.
+// Does not rely on GetProcAddress.
+PVOID find_function(PVOID module_base, const char* function_name) {
     if (!module_base || !function_name) {
         return NULL;
     }
@@ -160,7 +159,7 @@ FARPROC find_function(PVOID module_base, const char* function_name) {
                  }
 
                 // Calculate the actual function address (VA)
-                return (FARPROC)((BYTE*)module_base + function_rva);
+                return (PVOID)((BYTE*)module_base + function_rva);
             }
         }
     }

@@ -30,6 +30,8 @@ set(CORE_SOURCES
     ${CORE_DIR}/mem.c
     ${CORE_DIR}/evasion.c
     ${CORE_DIR}/rdi.c
+    ${CORE_DIR}/strategy.c
+    ${CORE_DIR}/strategy_ekko.c
     ${CORE_DIR}/loader.c
 )
 

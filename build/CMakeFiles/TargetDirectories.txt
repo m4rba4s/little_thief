@@ -1,5 +1,0 @@
-C:/stufff/build/CMakeFiles/PhantomEdge.dir
-C:/stufff/build/CMakeFiles/ALL_BUILD.dir
-C:/stufff/build/CMakeFiles/ZERO_CHECK.dir
-C:/stufff/build/test_payload/CMakeFiles/test_payload.dir
-C:/stufff/build/test_payload/CMakeFiles/ALL_BUILD.dir
