@@ -7,7 +7,7 @@
 #include "../include/evasion.h"  // For unhook_ntdll etc.
 #include "../include/rdi.h"      // For InvokeReflectiveLoader (will be called from here)
 #include "../include/strategy.h"  // For our new evasion strategy framework
-#include "payload.h"            // EMBEDDED PAYLOAD
+// #include "payload.h"            // EMBEDDED PAYLOAD - Not used in current simplified version
 #ifdef _DEBUG
 #include <stdio.h>
 #endif
