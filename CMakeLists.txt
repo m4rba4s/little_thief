@@ -32,6 +32,8 @@ set(CORE_SOURCES
     ${CORE_DIR}/rdi.c
     ${CORE_DIR}/strategy.c
     ${CORE_DIR}/strategy_ekko.c
+    ${CORE_DIR}/manual_loader.c
+    ${CORE_DIR}/strategy_manual_load.c
     ${CORE_DIR}/loader.c
 )
 

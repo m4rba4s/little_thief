@@ -58,6 +58,47 @@ typedef struct _FILE_STANDARD_INFORMATION {
 } FILE_STANDARD_INFORMATION, *PFILE_STANDARD_INFORMATION;
 #endif
 
+// Additional PE structures for manual loading
+#ifndef IMAGE_FILE_MACHINE_AMD64
+#define IMAGE_FILE_MACHINE_AMD64 0x8664
+#endif
+
+#ifndef IMAGE_FILE_MACHINE_I386
+#define IMAGE_FILE_MACHINE_I386 0x014c
+#endif
+
+#ifndef IMAGE_REL_BASED_ABSOLUTE
+#define IMAGE_REL_BASED_ABSOLUTE 0
+#endif
+
+#ifndef IMAGE_REL_BASED_HIGHLOW
+#define IMAGE_REL_BASED_HIGHLOW 3
+#endif
+
+#ifndef IMAGE_REL_BASED_DIR64
+#define IMAGE_REL_BASED_DIR64 10
+#endif
+
+#ifndef DLL_PROCESS_ATTACH
+#define DLL_PROCESS_ATTACH 1
+#endif
+
+#ifndef IMAGE_SNAP_BY_ORDINAL
+#define IMAGE_SNAP_BY_ORDINAL(Ordinal) ((Ordinal & IMAGE_ORDINAL_FLAG) != 0)
+#endif
+
+#ifndef IMAGE_ORDINAL
+#define IMAGE_ORDINAL(Ordinal) (Ordinal & 0xffff)
+#endif
+
+#ifndef IMAGE_ORDINAL_FLAG
+#ifdef _WIN64
+#define IMAGE_ORDINAL_FLAG 0x8000000000000000ULL
+#else
+#define IMAGE_ORDINAL_FLAG 0x80000000UL
+#endif
+#endif
+
 #endif // NTSTRUCTS_H
 
 

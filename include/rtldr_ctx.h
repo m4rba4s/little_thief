@@ -19,6 +19,13 @@ typedef struct _RTLDR_CTX {
 
     // Evasion strategy module
     struct _EVASION_STRATEGY* strategy;
+    
+    // Strategy-specific data
+    PVOID strategy_data;
+    
+    // Memory management function pointers
+    PVOID (*mem_alloc)(SIZE_T size);
+    VOID (*mem_free)(PVOID ptr);
 
 } RTLDR_CTX, *PRTLDR_CTX;
 
