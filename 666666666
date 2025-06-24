@@ -1,0 +1,230 @@
+Phantom Edge Loader – Engineering Rules & Development Log
+
+“Stealth isn’t a feature; it’s the ground‑truth budget. Every byte you emit is a potential IOC.”
+
+1. Project North Star
+
+Key Aspect
+
+Value
+
+Objective
+
+Disk‑less, modular Windows 10/11 (23H2+) loader that sidesteps modern EDR/ATP stacks (Defender, CrowdStrike, Cortex)
+
+Footprint
+
+No WinAPI, No‑CRT, direct PEB/EAT look‑ups, indirect syscalls only
+
+Languages
+
+C 90 + MASM/Intel ASM (x64)
+
+Toolchains
+
+MSVC 17.x, GCC/Clang 15+, cmake ≥ 3.15
+
+Style‑Guide
+
+K&R braces, snake_case, minimal comments (only non‑obvious logic)
+
+2. Immutable Rules  (“break = revert”)
+
+OPSEC first – never introduce: plain strings, RWX pages longer than 500 µs, obvious WinAPI imports, or debug artefacts.
+
+No direct WinAPI – always reach via wrapper (find_module_base, find_function) or new indirect syscall stubs.
+
+No CRT – Release builds /NODEFAULTLIB and /ENTRY:RealEntry (§4). Debug may keep CRT temporarily.
+
+x64 baseline – 32‑bit is out‑of‑scope until Phase‑3.
+
+Modular OR Die – every evasion/payload lives in its own TU; wiring happens in core/loader.c.
+
+3. Repository Layout  (📁 top‑level)
+/ build/               → CI artefacts (git‑ignored)
+/ core/                → low‑level engine (utils, syscalls, evasion, rdi, loader)
+/ include/             → public headers only (never include <windows.h>)
+/ stub/                → hand‑written entry shim (RealEntry)
+/ test_payload/        → minimal reflective DLL for integration tests
+/ fuzzer/              → libFuzzer harness and corpora (optional)
+CMakeLists.txt         → single‑root build script
+project_log.md         → running task ledger (this file supersedes)
+
+NOTE – All future helper scripts (Python/PS) belong in /tools/ (to be created).
+
+4. Build Matrix & Flags
+
+4.1 MSVC
+
+# Release (default)
+/O2 /GL           # speed & LTO
+/GS- /Gw /Gy      # kill stack cookie, function‑level linking
+/NODEFAULTLIB     # No‑CRT
+/ENTRY:RealEntry  # custom stub
+/SUBSYSTEM:WINDOWS
+/LTCG /OPT:REF /OPT:ICF
+
+⚠ Per‑file override: core/loader.c compiles without /GL (whole‑program opt interferes with section merging).
+
+4.2 GCC / Clang
+
+-O3 -fvisibility=hidden -flto -fno-stack-protector -s
+
+. Coding Style Cheat‑sheet
+
+Braces: if (foo) { … } – always same line.
+
+Indent: 4 spaces, no tabs.
+
+Headers: match .c name; expose only what other units need.
+
+Enums > #defines for constants that cross files.
+
+Comments: // inline for tiny hints, /* block */ for algo description.
+
+6. Core Abstractions & Helper API
+
+File
+
+Responsibility
+
+core/utils.c
+
+PEB traversal, hashing, find_* resolvers
+
+core/syscalls.c
+
+Syscall ID resolution (resolve_syscall_id) + naked wrappers
+
+core/mem.c
+
+Thin wrappers around NtAllocateVirtualMemory, NtProtectVirtualMemory, etc.
+
+core/evasion.c
+
+unhook_ntdll, AMSI/ETW patch, future sleep encryption
+
+core/rdi.c
+
+Reflective DLL loader
+
+core/loader.c
+
+Orchestration state‑machine (init → evasion → payload → exit)
+
+Do _not call WinAPI from any of the above. If you need a new NT routine:
+
+Add wrapper in include/syscalls.h & core/syscalls.c.
+
+Pipe through core/mem.c if memory‑related.
+
+7. Evasion & Memory Hygiene
+
+Unhooking: Load fresh ntdll.dll from System32, copy .text over in‑memory image.
+
+Indirect Syscalls: Halo’s Gate/Tartarus Gate (TODO F1) to survive ID drift on Patch Tuesday.
+
+Sleep Encryption: XOR page encryption + NtDelayExecution inside VEH‑guard (planned Task F4).
+
+Time‑window targets:
+
+Event
+
+Max RWX exposure
+
+Loader decrypt
+
+< 200 µs
+
+Sleep wake‑up (Ekko‑like)
+
+< 50 µs
+
+8. Test & Fuzz Policy
+
+libFuzzer harness (fuzzer/test_harness.c) feeds malformed PEs into execute_reflective_dll.
+
+Crash = bug > EDR detection: fix first, bypass later.
+
+Weekly CI run on latest Windows Insider VM; break on:
+
+changed syscall IDs
+
+changed g_ShimsEnabled offset (Early Cascade)
+
+9. Status Snapshot (24‑May‑2025)
+
+Imported from project_log.md + verification:
+
+✅ Phase 1 bootstrapped (dirs, build, core utils) — green.
+
+✅ Indirect syscalls stub operational.
+
+✅ RDI MVP wired.
+
+🟡 No‑CRT Release build links but crashes at NtTerminateProcess → see Task F3.
+
+🟡 Placeholder payload array still dummy bytes.
+
+10. Immediate TODO (Sprint‑0A)
+
+ID
+
+Owner
+
+Description
+
+Blockers
+
+F3
+
+YOU
+
+Finalise No‑CRT: fix missing intrinsics (memset, memcmp), ensure /NODEFAULTLIB links only ntoskrnl.lib equivalents.
+
+Investigate unresolved externals in memcpy, maybe /Zl?
+
+T1
+
+YOU
+
+Convert test_payload.dll → C array (use xxd -i), include in core/payload.h.
+
+None
+
+T2
+
+YOU
+
+Replace GetSystemDirectoryW call with direct PEB parse.
+
+Needs RTL_USER_PROCESS_PARAMETERS struct
+
+F4
+
+backlog
+
+Sleep encryption (Ekko‑lite) – encrypt .text & .rdata, decrypt on timer.
+
+Halo’s Gate first
+
+11. Backlog / Research
+
+Halo’s Gate / Tartarus Gate integration (robust syscall ID).
+
+Early Cascade offsets auto‑resolver via minimal PDB parser.
+
+Thread Stack Spoofing for worker threads.
+
+AtomBombing 2.0 stub (low priority until PoC stable).
+
+12. Cursor‑AI Preamble (for cheaper LLMs)
+
+You are editing Phantom Edge Loader (see RULES above).
+NEVER introduce CRT or WinAPI imports.
+Follow K&R, snake_case, MSVC/GCC x64.
+When uncertain, ask via TODO comment rather than guessing.
+Return full, compilable file contents.
+Explain edits in ≤3 lines after the code block.
+
+Place this preamble at the top of any future Cursor chat or commit description.
