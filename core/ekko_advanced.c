@@ -4,7 +4,7 @@
 #include "../include/utils.h"
 #include <math.h>
 
-// No need for forward declarations - they're in windows.h already
+// Remove problematic forward declarations that conflict with windows.h
 
 // ========================================================================
 // ELITE HACKER'S LAZY IMPLEMENTATION

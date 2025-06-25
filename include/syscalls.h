@@ -22,7 +22,7 @@ typedef struct _SYSCALL_CACHE {
     DWORD NtFreeVirtualMemory;
     DWORD NtCreateFile;
     DWORD NtReadFile;
-    // DWORD NtWriteFile; // Add if/when wrapped_NtWriteFile is fully implemented and used
+    DWORD NtWriteFile; // Added for cynical logger
     DWORD NtClose;
     DWORD NtQueryInformationFile; // Added for ReadPayloadFileToMemory
     // DWORD NtQuerySystemInformation; // Add if/when wrapped_NtQuerySystemInformation is implemented
@@ -240,6 +240,7 @@ NTSTATUS wrapped_NtFreeVirtualMemory(HANDLE ProcessHandle, PVOID *BaseAddress, P
 NTSTATUS wrapped_NtClose(HANDLE Handle);
 NTSTATUS wrapped_NtCreateFile(PHANDLE FileHandle, ACCESS_MASK DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, PIO_STATUS_BLOCK IoStatusBlock, PLARGE_INTEGER AllocationSize, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PVOID EaBuffer, ULONG EaLength);
 NTSTATUS wrapped_NtReadFile(HANDLE FileHandle, HANDLE Event, PIO_APC_ROUTINE ApcRoutine, PVOID ApcContext, PIO_STATUS_BLOCK IoStatusBlock, PVOID Buffer, ULONG Length, PLARGE_INTEGER ByteOffset, PULONG Key);
+NTSTATUS wrapped_NtWriteFile(HANDLE FileHandle, HANDLE Event, PIO_APC_ROUTINE ApcRoutine, PVOID ApcContext, PIO_STATUS_BLOCK IoStatusBlock, PVOID Buffer, ULONG Length, PLARGE_INTEGER ByteOffset, PULONG Key);
 NTSTATUS wrapped_NtQueryInformationFile(HANDLE FileHandle, PIO_STATUS_BLOCK IoStatusBlock, PVOID FileInformation, ULONG Length, ULONG FileInformationClass);
 
 // Function to resolve the syscall ID for a given NT function name
@@ -266,5 +267,9 @@ typedef NTSTATUS (NTAPI* syscall_NtDelayExecution)(
 );
 
 NTSTATUS wrapped_NtDelayExecution(BOOLEAN Alertable, PLARGE_INTEGER DelayInterval);
+
+// Added missing function declarations
+NTSTATUS wrapped_NtQuerySystemTime(OUT PLARGE_INTEGER SystemTime);
+NTSTATUS wrapped_NtQueryPerformanceCounter(OUT PLARGE_INTEGER PerformanceCounter, OUT PLARGE_INTEGER PerformanceFrequency OPTIONAL);
 
 #endif // SYSCALLS_H 

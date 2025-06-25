@@ -33,6 +33,17 @@ set(CORE_SOURCES
     ${CORE_DIR}/strategy.c
     ${CORE_DIR}/strategy_ekko.c
     ${CORE_DIR}/ekko_advanced.c
+    ${CORE_DIR}/halo_gate.c
+    ${CORE_DIR}/coff_loader.c
+    ${CORE_DIR}/injection_arsenal.c
+    ${CORE_DIR}/injection_techniques.c
+    ${CORE_DIR}/stealth_operations.asm
+    ${CORE_DIR}/cynical_logger.c
+    ${CORE_DIR}/environment_chameleon.c
+    ${CORE_DIR}/intelligent_bypass.c
+    ${CORE_DIR}/kernel_direct_syscalls.c
+    ${CORE_DIR}/dynamic_payload_generator.c
+    ${CORE_DIR}/performance_profiler.c
     ${CORE_DIR}/manual_loader.c
     ${CORE_DIR}/strategy_manual_load.c
     ${CORE_DIR}/loader.c

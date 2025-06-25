@@ -334,16 +334,7 @@ We welcome contributions from security researchers and red team professionals:
 
 ---
 
-## 🏆 **Acknowledgments**
 
-PhantomEdge builds upon the work of exceptional security researchers:
-
-- **[@Cracked5pider](https://github.com/Cracked5pider)** - LdrLibraryEx manual loading techniques
-- **[@trustedsec](https://github.com/trustedsec)** - COFFLoader and BOF concepts
-- **[@modexp](https://modexp.wordpress.com/)** - Advanced Windows internals research
-- **[@x86matthew](https://twitter.com/x86matthew)** - Assembly optimization techniques
-
----
 
 ## ⚖️ **License**
 
@@ -356,7 +347,7 @@ This project is licensed under **Research & Education License** - see [LICENSE](
 ## 📞 **Contact**
 
 - **🐦 Twitter:** [@m4rba4s](https://twitter.com/m4rba4s)
-- **📧 Email:** [redacted for privacy]
+- **📧 Email:** [funcybot@gmail.com]
 - **💬 Issues:** [GitHub Issues](https://github.com/m4rba4s/PhantomEdge/issues)
 
 ---

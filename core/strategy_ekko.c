@@ -4,8 +4,7 @@
 #include "../include/utils.h"
 #include "../include/syscalls.h"
 
-// Based on the original Ekko sleep obfuscation technique by Cracked5pider
-// Adapted for the PhantomEdge framework (No-CRT, direct syscalls)
+
 
 // --- Private Functions ---
 

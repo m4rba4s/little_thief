@@ -14,6 +14,14 @@ void RealEntry(void) {
     // Call the main logic of the loader
     exitCode = CoreLoaderMain();
 
+    // Add a pause to see results (for debugging)
+    #ifdef _DEBUG
+    MessageBoxA(NULL, "PhantomEdge completed. Press OK to exit.", "PhantomEdge Debug", MB_OK);
+    #else
+    // Even in Release, let's add a small message for testing
+    MessageBoxA(NULL, "PhantomEdge execution completed!", "PhantomEdge", MB_OK);
+    #endif
+
     // Terminate the process using the syscall wrapper
     // Use NtCurrentProcess() macro for the current process handle
     // Pass the exit code obtained from CoreLoaderMain

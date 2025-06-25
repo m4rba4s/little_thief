@@ -23,6 +23,15 @@ typedef struct _RTLDR_CTX {
     // Strategy-specific data
     PVOID strategy_data;
     
+    // Advanced syscall resolution engine (Halo's Gate)
+    struct _HALO_GATE_CTX* halo_gate;
+    
+    // BOF/COFF loading engine
+    struct _BOF_LOADER_CONFIG* bof_config;
+    
+    // Injection Arsenal configuration
+    struct _INJECTION_CONFIG* injection_config;
+    
     // Memory management function pointers
     PVOID (*mem_alloc)(SIZE_T size);
     VOID (*mem_free)(PVOID ptr);
